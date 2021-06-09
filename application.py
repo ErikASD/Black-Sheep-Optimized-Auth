@@ -15,7 +15,7 @@ import ujson
 from time import time
 
 FLOW_MANAGER_BYPASS = (b'/account/auth/login', b'/account/auth/register', b'/docs', b'/openapi.json',)
-AUTH_SIGN_SECRET = sha512((str(time())+'custom_salt').encode()).hexdigest()
+SESSION_SIGN_SECRET = sha512((str(time())+'custom_salt').encode()).hexdigest()
 ACCOUNT_SESSION_WHITELIST = ("account_uuid","display_name")
 
 app = Application(show_error_details=True)
@@ -23,7 +23,7 @@ post = app.router.post
 get = app.router.get
 route = app.route
 encryption_key = Fernet.generate_key()
-app.use_sessions(AUTH_SIGN_SECRET, session_cookie="custom-id", encryptor=FernetEncryptor(encryption_key))
+app.use_sessions(SESSION_SIGN_SECRET, session_cookie="custom-id", encryptor=FernetEncryptor(encryption_key))
 docs = OpenAPIHandler(info=Info(title="Custom Api", version="0.0.0"))
 docs.bind_app(app)
 
