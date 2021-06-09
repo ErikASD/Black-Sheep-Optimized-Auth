@@ -38,12 +38,16 @@ async def FlowManager(request, handler):
 	start_time = time()
 	bypasses_flow_manager = request.url.value in FLOW_MANAGER_BYPASS
 	account_uuid = request.session.get("account_uuid")
+	mng_end_time = time()
 	if not bypasses_flow_manager and account_uuid is None:
 		response = unauthorized({"details": "authentication failed"})
+		response.set_header(b"mngr-proccess-time", str(mng_end_time-start_time).encode('latin-1'))
 	else:
 		response = await handler(request)
+		response.set_header(b"mngr-proccess-time", str(mng_end_time-start_time).encode('latin-1'))
 	response.set_header(b"trace-id",str(uuid4()).encode('latin-1'))
-	response.set_header(b"server-proccess-time",str(time()-start_time).encode('latin-1'))
+	end_time = time()
+	response.set_header(b"server-proccess-time", str(end_time-start_time).encode('latin-1'))
 	return response
 
 app.middlewares.append(FlowManager)

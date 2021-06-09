@@ -25,17 +25,14 @@ def api_account_auths_login(request: Request, login: FromJSON[LoginDataClass]):
     email: str
     password: str
     """
-    try:
-        response = Account(request).login(login)
-    except Exception as exc:
-        response = unauthorized({"details": exc.args})
+    response = Account(request).login(login)
     return response
 
 @post("/account/auth/register")
 def api_account_auth_register(request: Request, register: FromJSON[RegisterDataClass]):
     if request.session.get("account_uuid"):
-        response = forbidden({"already_logged_in_exception": "already logged into "+ request.session.get("display_name")})
-        return response
+         response = forbidden({"already_logged_in_exception": "already logged into "+ request.session.get("display_name")})
+         return response
     """
     creates account
     @params RegisterDataClass
@@ -43,10 +40,7 @@ def api_account_auth_register(request: Request, register: FromJSON[RegisterDataC
     email: str
     password: str
     """
-    try:
-        response = Account(request).register(register)
-    except Exception as exc:
-        response = bad_request({"details": exc.args})
+    response = Account(request).register(register)
 
     return response
 
