@@ -4,9 +4,9 @@ BSOAS uses the fastest ASGI framework (Black Sheep) paired with uvicorn accordin
 
 avg response time of endpoints on LAN:
 
-/account/auth/login -> Success: 1 ms Failure: 1 ms
-
 /account/auth/register -> Success: 4-5 ms Failure: 3-4 ms
+
+/account/auth/login -> Success: 1 ms Failure: 1 ms
 
 /account/auth/session -> Success: 0.5 ms Failure: 0-0.5 ms
 
