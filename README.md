@@ -1,6 +1,6 @@
 # BlackSheepOptimizedAuth
 BSOA uses the most optimized way to relay information over http, Utilizing tuples and paired with the the Black Sheep web framework and SQLalchemy delivering a safe and secure barebones authentication system. 
-BSOA uses the fastest ASGI framework (Black Sheep) paired with uvicorn according to http://klen.github.io/py-frameworks-bench/ (almost 8x faster than django and 2x the speed of fast api).
+BSOA uses the fastest ASGI framework (Black Sheep according to http://klen.github.io/py-frameworks-bench/) paired with uvicorn (almost 8x faster than django and 2x the speed of fast api).
 
 avg response time of endpoints on LAN:
 
