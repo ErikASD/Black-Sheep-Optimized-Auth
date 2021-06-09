@@ -1,0 +1,6 @@
+blacksheep
+email_validator
+cryptography
+ujson
+uvicorn
+sqlalchemy
