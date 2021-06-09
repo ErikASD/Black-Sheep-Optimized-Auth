@@ -36,11 +36,12 @@ async def FlowManager(request, handler):
 	if it is needed for the endpoint
 	"""
 	start_time = time()
-	response = await handler(request)
 	bypasses_flow_manager = request.url.value in FLOW_MANAGER_BYPASS
 	account_uuid = request.session.get("account_uuid")
 	if not bypasses_flow_manager and account_uuid is None:
 		response = unauthorized({"details": "authentication failed"})
+	else:
+		response = await handler(request)
 	response.set_header(b"trace-id",str(uuid4()).encode('latin-1'))
 	response.set_header(b"server-proccess-time",str(time()-start_time).encode('latin-1'))
 	return response
