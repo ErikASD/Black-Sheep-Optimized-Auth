@@ -13,4 +13,4 @@ avg response time of endpoints on LAN:
 /account/auth/session -> Success: 0.5 ms Failure: 0-0.5 ms
 
 
-If you find any changes that can optimize the system, please open a pull request and I will get to it ASAP.
+If you find any changes that can optimize the system, please open a pull request with them and I will get to them ASAP.
