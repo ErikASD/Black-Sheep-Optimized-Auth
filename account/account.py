@@ -33,6 +33,12 @@ class Account:
 				return ("password_length_exception", "password can not be shorter than 9 characters or longer than 200")
 			elif self.password.isalnum():
 				return ("password_special_char_missing_exception", "password is missing a special character")
+			elif not any(char.isdigit() for char in self.password):
+				return ("password_num_char_missing_exception", "password is missing a numerical character")
+			elif not any(char.isupper() for char in self.password):
+				return ("password_upper_char_missing_exception", "password is missing an uppercase character")
+			elif not any(char.islower() for char in self.password):
+				return ("password_lower_char_missing_exception", "password is missing a lowercase character")
 			elif not self.display_name.isalnum():
 				return ("string_invalid_char_exception", "display_name has an invalid char")
 			elif len(self.display_name) < 6:
