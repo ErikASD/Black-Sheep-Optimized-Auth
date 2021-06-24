@@ -45,19 +45,12 @@ class Account:
 				return ("string_underproduce_exception", "display_name has to be atleast 6 characters")
 			elif len(self.display_name) > 15:
 				return ("string_exceeds_exception", "display_name has to be atmost 15 characters")
-			try:
-				valid = validate_email(self.email)
-				email = valid.email
-			except EmailNotValidError as e:
-				return ("validate_email_exception", str(e))
-			for char in self.password:
-				int_char = ord(char)
-				if not (int_char >= 33 and int_char <= 126):
-					return ("password_out_of_bounds_exception", "password has an invalid char")
-			self.db_account = self.db.query(AccountData.account_uuid).filter(AccountData.email == self.email).one_or_none()
+			elif re.search('\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b', self.email):
+				return ("email_invalid_exception", "email entered is invalid")
+			self.db_account = self.db.query(exists().where(AccountData.email == self.email)).scalar()
 			if self.db_account:
 				return ("duplicate_email_exception", "email already registered")
-			self.db_account = self.db.query(AccountData.account_uuid).filter(AccountData.display_name == self.display_name).one_or_none()
+			self.db_account = self.db.query(exists().where(AccountData.display_name == self.display_name)).scalar()
 			if self.db_account:
 				return ("duplicate_display_name_exception", "display name already registered")
 			return ("success","success")
@@ -108,9 +101,10 @@ class Account:
 		self.db.add(self.db_account)
 		self.db.commit()
 		self.db.refresh(self.db_account)
-		for attribute in self.db_account.__dict__:
-			if not attribute.startswith('_'):
-				self.request.session[attribute] = self.db_account.__dict__[attribute]
+		self.db_account = self.db_account.__dict__
+		del self.db_account["_sa_instance_state"]
+		for attribute in self.db_account:
+			self.request.session[attribute] = self.db_account[attribute]
 		return ok({"uuid": self.uuid})
 
 
@@ -126,13 +120,14 @@ class Account:
 		self.email = self.input.email.lower()
 		self.password = self.input.password
 
-		self.db_account = self.db.query(AccountData.account_uuid, AccountData.password, AccountData.salt).filter(AccountData.email == self.email).one_or_none()
+		self.db_account = self.db.query(AccountData).filter(AccountData.email == self.email).one_or_none()
+
 		if self.db_account:
-			self.uuid = self.db_account[0]
-			if self.db_account[1] == compare_password(self.password, self.db_account[2]):
-				for attribute in self.db_account.keys():
-					if not attribute.startswith('_'):
-						self.request.session[attribute] = self.db_account[attribute]
-				return ok({"uuid": self.uuid})
+			self.db_account = self.db_account.__dict__
+			del self.db_account["_sa_instance_state"]
+			if self.db_account["password"] == compare_password(self.password, self.db_account["salt"]):
+				for attribute in self.db_account:
+					self.request.session[attribute] = self.db_account[attribute]
+				return ok({"uuid": self.db_account["account_uuid"]})
 			return bad_request({"wrong_password_exception":"wrong password"})
 		return bad_request({"email_not_found_exception":"email not found"})

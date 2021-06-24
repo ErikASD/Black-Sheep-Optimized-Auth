@@ -13,6 +13,9 @@ from hashlib import sha512
 from uuid import uuid4
 import ujson
 from time import time
+from functools import wraps
+from sqlalchemy.sql import exists
+import re
 
 FLOW_MANAGER_BYPASS = (b'/account/auth/login', b'/account/auth/register', b'/docs', b'/openapi.json',)
 SESSION_SIGN_SECRET = sha512((str(time())+'custom_salt').encode()).hexdigest()
@@ -27,27 +30,33 @@ app.use_sessions(SESSION_SIGN_SECRET, session_cookie="custom-id", encryptor=Fern
 docs = OpenAPIHandler(info=Info(title="Custom Api", version="0.0.0"))
 docs.bind_app(app)
 
-async def FlowManager(request, handler):
-	"""
-	middleware handles:
-	* proccess time
-	* trace-id
-	* client session authentication and
-	if it is needed for the endpoint
-	"""
-	start_time = time()
-	bypasses_flow_manager = request.url.value in FLOW_MANAGER_BYPASS
-	account_uuid = request.session.get("account_uuid")
-	mng_end_time = time()
-	if not bypasses_flow_manager and account_uuid is None:
-		response = unauthorized({"details": "authentication failed"})
-		response.set_header(b"mngr-proccess-time", str(mng_end_time-start_time).encode('latin-1'))
-	else:
-		response = await handler(request)
-		response.set_header(b"mngr-proccess-time", str(mng_end_time-start_time).encode('latin-1'))
-	response.set_header(b"trace-id",str(uuid4()).encode('latin-1'))
-	end_time = time()
-	response.set_header(b"server-proccess-time", str(end_time-start_time).encode('latin-1'))
-	return response
+def session_auth():
+	def decorator(next_handler):
+		@wraps(next_handler)
+		async def wrapped(*args, **kwargs):
+			request = args[0]
+			try:
+				assert request.session.get("account_uuid")
+			except:
+				response = unauthorized({"details": "authentication failed"})
+			else:
+				response = await next_handler(*args, **kwargs)
+			return response
+		return wrapped
+	return decorator
 
-app.middlewares.append(FlowManager)
+
+def already_signed_in():
+	def decorator(next_handler):
+		@wraps(next_handler)
+		async def wrapped(*args, **kwargs):
+			request = args[0]
+			try:
+				assert not request.session.get("account_uuid")
+			except:
+				response = forbidden({"already_logged_in_exception": "already logged into "+ request.session.get("display_name")})
+			else:
+				response = await next_handler(*args, **kwargs)
+			return response
+		return wrapped
+	return decorator

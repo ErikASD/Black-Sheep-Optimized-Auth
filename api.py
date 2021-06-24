@@ -15,21 +15,20 @@ class LoginDataClass:
     password: str
 
 @post("/account/auth/login")
-def api_account_auths_login(request: Request, login: FromJSON[LoginDataClass]):
+@already_signed_in()
+async def api_account_auths_login(request: Request, login: FromJSON[LoginDataClass]):
     """
     checks if params match account details
     @params LoginDataClass
     email: str
     password: str
     """
-    if request.session.get("account_uuid"):
-        response = forbidden({"already_logged_in_exception": "already logged into "+ request.session.get("display_name")})
-        return response
     response = Account(request).login(login)
     return response
 
 @post("/account/auth/register")
-def api_account_auth_register(request: Request, register: FromJSON[RegisterDataClass]):
+@already_signed_in()
+async def api_account_auth_register(request: Request, register: FromJSON[RegisterDataClass]):
     """
     creates account
     @params RegisterDataClass
@@ -37,15 +36,12 @@ def api_account_auth_register(request: Request, register: FromJSON[RegisterDataC
     email: str
     password: str
     """
-    if request.session.get("account_uuid"):
-         response = forbidden({"already_logged_in_exception": "already logged into "+ request.session.get("display_name")})
-         return response
     response = Account(request).register(register)
-
     return response
 
 @get("/account/auth/session")
-def api_account_auth_session(request):
+@session_auth()
+async def api_account_auth_session(request):
     """
     checks if the session 
     cookie is valid
