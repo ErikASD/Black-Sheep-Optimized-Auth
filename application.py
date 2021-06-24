@@ -17,7 +17,6 @@ from functools import wraps
 from sqlalchemy.sql import exists
 import re
 
-FLOW_MANAGER_BYPASS = (b'/account/auth/login', b'/account/auth/register', b'/docs', b'/openapi.json',)
 SESSION_SIGN_SECRET = sha512((str(time())+'custom_salt').encode()).hexdigest()
 ACCOUNT_SESSION_WHITELIST = ("account_uuid","display_name")
 
